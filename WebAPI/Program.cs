@@ -1,0 +1,51 @@
+using Business.Abstracts;
+using Business.Concretes;
+using DataAccess.Abstracts;
+using DataAccess.Concretes.EntityFramework;
+using Core.CrossCuttingConcerns.ExceptionsUpdated;
+
+var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.Services.AddExceptionHandler<ExceptionHandler>();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
+// DataAccess - Entity Framework
+
+// Singleton-Scoped-Transient -> Lifetime
+// Singleton => Üretilen baðýmlýlýk uygulama açýk olduðu sürece tek bir kere newlenir. 
+// Her enjeksiyonda o instance kullanýlýr.
+
+// Scoped => (API isteði) Ýstek baþýna 1 instance oluþturur.
+
+// Transient => Her adýmda (her talepte) yeni 1 instance.
+builder.Services.AddScoped<IProductService, ProductManager>();
+builder.Services.AddScoped<IProductRepository, EfProductRepository>();
+builder.Services.AddDbContext<BaseDbContext>();
+
+
+
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+//app.ConfigureExceptionMiddlewareExtensions();
+app.UseExceptionHandler(o => { });
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
